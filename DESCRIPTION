@@ -1,0 +1,23 @@
+Package: GloVeHd
+Type: Package
+Title: Gloval Vectors for HealthCare Data
+Version: 0.0.1
+Authors@R: c(
+  person("Martijn", "Schuemie", email = "schuemie@ohdsi.org", role = c("aut", "cre"))
+  )
+Description: Apply the GloVe algorithm to data in the OMOP Common Data Model.
+Depends:
+  DatabaseConnector (>= 6.0.0)
+Imports:
+  SqlRender,
+  readr,
+  rlang,
+  dplyr,
+  ParallelLogger,
+  text2vec
+Remotes:
+  ohdsi/DatabaseConnector
+License: Apache License
+RoxygenNote: 7.2.3
+Roxygen: list(markdown = TRUE)
+Encoding: UTF-8
