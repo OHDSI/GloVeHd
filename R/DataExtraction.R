@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# library(dplyr)
+
 #' Extract data from the database
 #' 
 #' @description 
@@ -42,8 +44,8 @@ extractData <- function(connectionDetails,
                         workDatabaseSchema,
                         sampleTable = "glovehd_sample",
                         folder,
-                        sampleSize = 10000,
-                        chunkSize = 2500) {
+                        sampleSize = 1e6,
+                        chunkSize = 25000) {
   errorMessages <- checkmate::makeAssertCollection()
   checkmate::assertClass(connectionDetails, "ConnectionDetails", add = errorMessages)
   checkmate::assertCharacter(cdmDatabaseSchema, len = 1, add = errorMessages)
@@ -54,6 +56,8 @@ extractData <- function(connectionDetails,
   checkmate::assertInt(chunkSize, lower = 1, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
   DatabaseConnector::assertTempEmulationSchemaSet(connectionDetails$dbms)
+  
+  startTime <- Sys.time()
   
   if (!dir.exists(folder)) {
     dir.create(folder)
@@ -73,7 +77,7 @@ extractData <- function(connectionDetails,
     sample_size = sampleSize,
     chunk_size = chunkSize
   )
-  DatabaseConnector::executeSql(connection, sql)
+  DatabaseConnector::executeSql(connection, sql, reportOverallTime = FALSE)
   
   sql <- "SELECT MAX(chunk_id) AS value FROM @work_database_schema.@sample_table;"
   numberOfChunks <- DatabaseConnector::renderTranslateQuerySql(
@@ -82,9 +86,10 @@ extractData <- function(connectionDetails,
     work_database_schema = workDatabaseSchema,
     sample_table = sampleTable
   )[1, 1]
-  
+  message("Fetching person concept data")
+  andromeda <- Andromeda::andromeda()
+  pb <- txtProgressBar(style = 3)
   for (i in seq_len(numberOfChunks)) {
-    message(sprintf("- Fetching chunk %d of %d", i, numberOfChunks))
     sql <- SqlRender::loadRenderTranslateSql(
       sqlFilename = "CreateChunkTempTable.sql",
       packageName = "GloVeHd",
@@ -96,26 +101,71 @@ extractData <- function(connectionDetails,
     )
     DatabaseConnector::executeSql(connection, sql, progressBar = FALSE, reportOverallTime = FALSE)
     
-    andromeda <- Andromeda::andromeda()
     sql <- SqlRender::loadRenderTranslateSql(
       sqlFilename = "ExtractConceptData.sql",
       packageName = "GloVeHd",
       dbms = connectionDetails$dbms,
       cdm_database_schema = cdmDatabaseSchema
     )
-    
     DatabaseConnector::querySqlToAndromeda(
       connection = connection,
       sql = sql,
       andromeda = andromeda,
       andromedaTableName = "conceptData",
-      snakeCaseToCamelCase = TRUE
-      # integerAsNumeric = FALSE
+      snakeCaseToCamelCase = TRUE,
+      appendToTable = (i != 1)
     )
     
-    Andromeda::saveAndromeda(andromeda, file.path(folder, sprintf("Data_%d.zip", i)))
     sql <- "DROP TABLE #sample_chunk;"
     DatabaseConnector::renderTranslateExecuteSql(connection, sql, progressBar = FALSE, reportOverallTime = FALSE)
+    setTxtProgressBar(pb, i / numberOfChunks)
   }
-
+  close(pb)
+  message("Fetching concept reference")
+  conceptIds <- andromeda$conceptData %>%
+    distinct(.data$conceptId) %>%
+    collect()
+  DatabaseConnector::insertTable(
+    connection = connection,
+    tableName = "#concept_ids",
+    data = conceptIds,
+    dropTableIfExists = TRUE,
+    tempTable = TRUE,
+    camelCaseToSnakeCase = TRUE
+  )
+  sql <- SqlRender::loadRenderTranslateSql(
+    sqlFilename = "ExtractConceptReference.sql",
+    packageName = "GloVeHd",
+    dbms = connectionDetails$dbms,
+    cdm_database_schema = cdmDatabaseSchema
+  )
+  DatabaseConnector::querySqlToAndromeda(
+    connection = connection,
+    sql = sql,
+    andromeda = andromeda,
+    andromedaTableName = "conceptReference",
+    snakeCaseToCamelCase = TRUE
+  )
+  sql <- "DROP TABLE #concept_ids;"
+  DatabaseConnector::renderTranslateExecuteSql(connection, sql, progressBar = FALSE, reportOverallTime = FALSE)
+  
+  message("Fetching observation period reference")
+  sql <- SqlRender::loadRenderTranslateSql(
+    sqlFilename = "ExtractObservationPeriodReference.sql",
+    packageName = "GloVeHd",
+    dbms = connectionDetails$dbms,
+    cdm_database_schema = cdmDatabaseSchema,
+    work_database_schema = workDatabaseSchema,
+    sample_table = sampleTable
+  )
+  DatabaseConnector::querySqlToAndromeda(
+    connection = connection,
+    sql = sql,
+    andromeda = andromeda,
+    andromedaTableName = "conceptReference",
+    snakeCaseToCamelCase = TRUE
+  )
+  Andromeda::saveAndromeda(andromeda, file.path(folder, "Data.zip"))
+  delta <- Sys.time() - startTime
+  message(paste("Extracting data took", signif(delta, 3), attr(delta, "units")))
 }

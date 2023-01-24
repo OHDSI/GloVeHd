@@ -9,14 +9,15 @@ Description: Apply the GloVe algorithm to data in the OMOP Common Data Model.
 Depends:
   DatabaseConnector (>= 6.0.0)
 Imports:
-  SqlRender,
+  SqlRender (>= 1.12.0),
   readr,
   rlang,
   dplyr,
   ParallelLogger,
   text2vec
 Remotes:
-  ohdsi/DatabaseConnector
+  ohdsi/DatabaseConnector,
+  ohdsi/SqlRender
 License: Apache License
 RoxygenNote: 7.2.3
 Roxygen: list(markdown = TRUE)
