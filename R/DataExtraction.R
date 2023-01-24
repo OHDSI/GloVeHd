@@ -162,7 +162,7 @@ extractData <- function(connectionDetails,
     connection = connection,
     sql = sql,
     andromeda = andromeda,
-    andromedaTableName = "conceptReference",
+    andromedaTableName = "observationPeriodReference",
     snakeCaseToCamelCase = TRUE
   )
   Andromeda::saveAndromeda(andromeda, file.path(folder, "Data.zip"))

@@ -38,9 +38,11 @@ extractData(
   sampleTable = sampleTable,
   folder = folder,
   sampleSize = 1e5,
-  chunkSize = 2500
+  chunkSize = 25000
 ) 
 
 
-# andromeda <- Andromeda::loadAndromeda(file.path(folder, "Data.zip"))
-# dplyr::count(andromeda$conceptData)
+andromeda <- Andromeda::loadAndromeda(file.path(folder, "Data.zip"))
+dplyr::count(andromeda$conceptData)
+andromeda$conceptReference
+# andromeda$
