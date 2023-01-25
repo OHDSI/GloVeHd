@@ -45,4 +45,4 @@ extractData(
 andromeda <- Andromeda::loadAndromeda(file.path(folder, "Data.zip"))
 dplyr::count(andromeda$conceptData)
 andromeda$conceptReference
-# andromeda$
+andromeda$observationPeriodReference

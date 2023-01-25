@@ -3,3 +3,4 @@
 export(extractData)
 import(dplyr)
 importFrom(rlang,.data)
+useDynLib(GloVeHd)

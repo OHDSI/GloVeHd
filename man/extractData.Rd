@@ -11,7 +11,7 @@ extractData(
   sampleTable = "glovehd_sample",
   folder,
   sampleSize = 1e+06,
-  chunkSize = 250000
+  chunkSize = 25000
 )
 }
 \arguments{

@@ -19,4 +19,5 @@
 
 #' @import dplyr
 #' @importFrom rlang .data
+#' @useDynLib GloVeHd
 NULL
