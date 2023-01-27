@@ -48,8 +48,9 @@ getSimilarConcepts <- function(conceptId, conceptVectors, n = 25) {
   query <- conceptVectors[as.character(conceptId), , drop = FALSE]
   cos_sim <- text2vec::sim2(x = conceptVectors, y = query, method = "cosine", norm = "l2")
   similarity <- head(sort(cos_sim[,1], decreasing = TRUE), n)
-  as_tibble(cbind(similarity, 
-                  attr(conceptVectors, "conceptReference")  %>%
-                    filter(.data$conceptId %in% as.numeric(names(similarity))))) %>%
+  similarity <- tibble(similarity = similarity, conceptId = as.numeric(names(similarity)))
+  attr(conceptVectors, "conceptReference")  %>%
+    inner_join(similarity, by = "conceptId") %>%
+    arrange(desc(similarity)) %>%
     return()
 }

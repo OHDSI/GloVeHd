@@ -61,7 +61,7 @@ conceptIdToIndex() {
     conceptIdToIndex[_conceptIds[i]] = i;
 }
 
-void MatrixBuilder::processPerson(PersonData personData) {
+void MatrixBuilder::processPerson(PersonData& personData) {
   std::sort(personData.conceptDatas->begin(), personData.conceptDatas->end());
   int priorCursor = 0;
   int postCursor = 0;

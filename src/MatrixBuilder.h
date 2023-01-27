@@ -37,7 +37,7 @@ public:
                 const std::vector<double>& _conceptIds);
   S4 buildMatrix();
 private:
-  void processPerson(PersonData personData);
+  void processPerson(PersonData& personData);
   
   SparseTripletMatrix<float> matrix;
   PersonDataIterator personDataIterator;

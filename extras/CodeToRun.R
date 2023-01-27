@@ -59,5 +59,4 @@ saveRDS(conceptVectors, file.path(folder, "ConceptVectors.rds"))
 conceptVectors <- readRDS(file.path(folder, "ConceptVectors.rds"))
 getSimilarConcepts(conceptId = 312327, conceptVectors = conceptVectors, n = 25)
 getSimilarConcepts(conceptId = 2005415, conceptVectors = conceptVectors, n = 25)
-
-
+getSimilarConcepts(conceptId = 1124300, conceptVectors = conceptVectors, n = 25)

@@ -60,8 +60,7 @@ struct PersonData {
   }
 
   ~PersonData() {
-    // Causes R to crash when uncommented. Don't understand why:
-    // delete conceptDatas;
+    delete conceptDatas;
   }
 
   std::string personId;
