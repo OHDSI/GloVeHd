@@ -18,6 +18,7 @@
 "_PACKAGE"
 
 #' @import dplyr
+#' @import Matrix
 #' @importFrom rlang .data
 #' @useDynLib GloVeHd
 NULL

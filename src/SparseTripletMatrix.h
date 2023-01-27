@@ -59,7 +59,7 @@ private:
   size_t nnz;
   // container for sparse matrix in triplet form
   std::unordered_map< pair<uint32_t, uint32_t>, T> sparse_container;
-
+  
 };
 
 template<typename T>

@@ -32,8 +32,6 @@
 #' @param workDatabaseSchema           The name of the database schema where work tables can be created.
 #' @param sampleTable                  The name of the table where the sampled observation period IDs 
 #'                                     will be stored.
-#' @param folder                       Path to a folder in the local file system where the data will
-#'                                     be written.
 #' @param sampleSize                   The number of observation periods to be included in the sample.
 #' @param chunkSize                    The number of observation periods in a chunk. Larger chunk sizes
 #'                                     will be faster, but may lead to memory issues on the server.
@@ -43,7 +41,6 @@ extractData <- function(connectionDetails,
                         cdmDatabaseSchema,
                         workDatabaseSchema,
                         sampleTable = "glovehd_sample",
-                        folder,
                         sampleSize = 1e6,
                         chunkSize = 25000) {
   errorMessages <- checkmate::makeAssertCollection()
@@ -58,11 +55,7 @@ extractData <- function(connectionDetails,
   DatabaseConnector::assertTempEmulationSchemaSet(connectionDetails$dbms)
   
   startTime <- Sys.time()
-  
-  if (!dir.exists(folder)) {
-    dir.create(folder)
-  }
-  
+
   connection <- DatabaseConnector::connect(connectionDetails)
   on.exit(DatabaseConnector::disconnect(connection))
   
@@ -165,7 +158,8 @@ extractData <- function(connectionDetails,
     andromedaTableName = "observationPeriodReference",
     snakeCaseToCamelCase = TRUE
   )
-  Andromeda::saveAndromeda(andromeda, file.path(folder, "Data.zip"))
+  
   delta <- Sys.time() - startTime
   message(paste("Extracting data took", signif(delta, 3), attr(delta, "units")))
+  return(andromeda)
 }

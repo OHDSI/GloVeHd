@@ -29,16 +29,19 @@ using namespace Rcpp;
 namespace ohdsi {
 namespace glovehd {
 struct ConceptData {
-  ConceptData(int _startDay,
-      int _endDay,
-      uint32_t _conceptId) :
+  ConceptData(int _startDay, int _endDay, int64_t _conceptId) :
   startDay(_startDay),
   endDay(_endDay),
   conceptId(_conceptId) {
   }
+  
+  bool operator <(const ConceptData& conceptData) const {
+    return (startDay < conceptData.startDay);
+  }
+  
   int startDay;
   int endDay;
-  uint32_t  conceptId;
+  int64_t  conceptId;
 };
 
 struct PersonData {
@@ -51,12 +54,14 @@ struct PersonData {
   observationPeriodId(_observationPeriodId),
   observationPeriodSeqId(_observationPeriodSeqId),
   observationPeriodStartDate(_observationPeriodStartDate),
-  observationPeriodEndDate(_observationPeriodEndDate) {
+  observationPeriodEndDate(_observationPeriodEndDate),
+  conceptDatas(0) {
     conceptDatas = new std::vector<ConceptData>;
   }
 
   ~PersonData() {
-    delete conceptDatas;
+    // Causes R to crash when uncommented. Don't understand why:
+    // delete conceptDatas;
   }
 
   std::string personId;

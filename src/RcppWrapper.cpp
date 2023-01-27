@@ -27,15 +27,15 @@ using namespace Rcpp;
 // [[Rcpp::export]]
 S4 buildMatrix(const List& conceptData,
                const DataFrame& observationPeriodReference,
-               const NumericVector& weights,
+               const std::vector<double>& weights,
                const int windowSize,
                const int context,
-               const int numberOfConcepts) {
+               const std::vector<double>& conceptIds) {
 
   using namespace ohdsi::glovehd;
 
   try {
-    MatrixBuilder matrixBuilder(conceptData, observationPeriodReference, weights, windowSize, context, numberOfConcepts);
+    MatrixBuilder matrixBuilder(conceptData, observationPeriodReference, weights, windowSize, context, conceptIds);
     S4 matrix = matrixBuilder.buildMatrix();
     return matrix;
   } catch (std::exception &e) {

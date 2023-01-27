@@ -31,20 +31,23 @@ class MatrixBuilder {
 public:
   MatrixBuilder(const List& _conceptData,
                 const DataFrame& _observationPeriodReference,
-                const NumericVector& _weights,
+                const std::vector<double>& _weights,
                 const int _windowSize,
                 const int _context,
-                const int _numberOfConcepts);
+                const std::vector<double>& _conceptIds);
   S4 buildMatrix();
 private:
   void processPerson(PersonData personData);
   
   SparseTripletMatrix<float> matrix;
   PersonDataIterator personDataIterator;
-  NumericVector weights;
+  std::vector<double> weights;
   int windowSize;
   int context;
-  int numberOfConcepts;
+  std::vector<double> conceptIds;
+  std::map<int64_t, int> conceptIdToIndex;
+  int priorDays;
+  int postDays;
 };
 }
 }

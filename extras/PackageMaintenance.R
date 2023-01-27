@@ -14,6 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Manually delete package from library. Avoids "Already in use" message when rebuilding
+unloadNamespace("GloVeHd")
+.rs.restartR()
+folder <- system.file(package = "GloVeHd")
+folder
+unlink(folder, recursive = TRUE, force = TRUE)
+file.exists(folder)
+
 # Format and check code:
 styler::style_pkg()
 OhdsiRTools::checkUsagePackage("GloVeHd")

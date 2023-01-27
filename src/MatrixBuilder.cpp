@@ -20,6 +20,7 @@
 #define MATRIXBUILDER_CPP_
 
 #include <ctime>
+#include <string>
 #include <Rcpp.h>
 #include "MatrixBuilder.h"
 #include "PersonDataIterator.h"
@@ -31,21 +32,61 @@ namespace glovehd {
 
 MatrixBuilder::MatrixBuilder(const List& _conceptData,
                              const DataFrame& _observationPeriodReference,
-                             const NumericVector& _weights,
+                             const std::vector<double>& _weights,
                              const int _windowSize,
                              const int _context,
-                             const int _numberOfConcepts) :
-matrix(_numberOfConcepts, _numberOfConcepts),
+                             const std::vector<double>& _conceptIds) :
+matrix(_conceptIds.size(), _conceptIds.size()),
 personDataIterator(_conceptData, _observationPeriodReference),
 weights(_weights),
 windowSize(_windowSize),
 context(_context),
-numberOfConcepts(_numberOfConcepts) {
-  
+conceptIds(_conceptIds),
+conceptIdToIndex() {
+  switch(context) {
+  case 0:
+    // Symmetrical context
+    priorDays = _windowSize / 2;
+    postDays = _windowSize / 2;
+    break;
+  case -1:
+    // Left context
+    priorDays = _windowSize;
+    postDays = 0;
+    break;
+  default:
+    ::Rf_error("Illegal context");
+  }
+  for (unsigned int i = 0; i < _conceptIds.size(); i++)
+    conceptIdToIndex[_conceptIds[i]] = i;
 }
 
 void MatrixBuilder::processPerson(PersonData personData) {
-  
+  std::sort(personData.conceptDatas->begin(), personData.conceptDatas->end());
+  int priorCursor = 0;
+  int postCursor = 0;
+  int currentDay = -1;
+  int conceptDataSize = personData.conceptDatas->size();
+  for (std::vector<ConceptData>::iterator conceptData = personData.conceptDatas->begin(); conceptData != personData.conceptDatas->end(); ++conceptData) {
+    if (conceptData->startDay > currentDay) {
+      currentDay = conceptData->startDay;
+      while (personData.conceptDatas->at(priorCursor).startDay < currentDay - priorDays && priorCursor < conceptDataSize - 1)
+        priorCursor++;
+      while (personData.conceptDatas->at(postCursor).startDay < currentDay + postDays && postCursor < conceptDataSize - 1)
+        postCursor++;
+      if (personData.conceptDatas->at(postCursor).startDay > currentDay + postDays)
+        postCursor--;
+    }
+    for (int i = priorCursor; i <= postCursor; i++) {
+      ConceptData contextConceptData = personData.conceptDatas->at(i);
+      if (contextConceptData.startDay != currentDay && contextConceptData.conceptId != conceptData->conceptId) {
+        double weight = weights.at(contextConceptData.startDay - currentDay + priorDays);
+        int index = conceptIdToIndex[conceptData->conceptId];
+        int contextIndex = conceptIdToIndex[contextConceptData.conceptId];
+        matrix.add(index, contextIndex, weight);
+      }
+    }
+  }
 }
 
 
@@ -54,8 +95,11 @@ S4 MatrixBuilder::buildMatrix() {
     PersonData personData = personDataIterator.next();
     processPerson(personData);
   }
-  CharacterVector dummy_dimnames(0);
-  return matrix.get_sparse_triplet_matrix(dummy_dimnames, dummy_dimnames);
+  CharacterVector dimNames(conceptIds.size());
+  for (unsigned int i = 0; i < conceptIds.size(); i++) {
+    dimNames[i] = std::to_string((int) conceptIds[i]);
+  }
+  return matrix.get_sparse_triplet_matrix(dimNames, dimNames);
 }
 
 }

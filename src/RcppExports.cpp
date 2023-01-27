@@ -11,18 +11,18 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // buildMatrix
-S4 buildMatrix(const List& conceptData, const DataFrame& observationPeriodReference, const NumericVector& weights, const int windowSize, const int context, const int numberOfConcepts);
-RcppExport SEXP _GloVeHd_buildMatrix(SEXP conceptDataSEXP, SEXP observationPeriodReferenceSEXP, SEXP weightsSEXP, SEXP windowSizeSEXP, SEXP contextSEXP, SEXP numberOfConceptsSEXP) {
+S4 buildMatrix(const List& conceptData, const DataFrame& observationPeriodReference, const std::vector<double>& weights, const int windowSize, const int context, const std::vector<double>& conceptIds);
+RcppExport SEXP _GloVeHd_buildMatrix(SEXP conceptDataSEXP, SEXP observationPeriodReferenceSEXP, SEXP weightsSEXP, SEXP windowSizeSEXP, SEXP contextSEXP, SEXP conceptIdsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const List& >::type conceptData(conceptDataSEXP);
     Rcpp::traits::input_parameter< const DataFrame& >::type observationPeriodReference(observationPeriodReferenceSEXP);
-    Rcpp::traits::input_parameter< const NumericVector& >::type weights(weightsSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type weights(weightsSEXP);
     Rcpp::traits::input_parameter< const int >::type windowSize(windowSizeSEXP);
     Rcpp::traits::input_parameter< const int >::type context(contextSEXP);
-    Rcpp::traits::input_parameter< const int >::type numberOfConcepts(numberOfConceptsSEXP);
-    rcpp_result_gen = Rcpp::wrap(buildMatrix(conceptData, observationPeriodReference, weights, windowSize, context, numberOfConcepts));
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type conceptIds(conceptIdsSEXP);
+    rcpp_result_gen = Rcpp::wrap(buildMatrix(conceptData, observationPeriodReference, weights, windowSize, context, conceptIds));
     return rcpp_result_gen;
 END_RCPP
 }

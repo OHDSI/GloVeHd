@@ -38,17 +38,23 @@ conceptDataIterator(_conceptData, true), observationPeriodStartDates(0), observa
   observationPeriodSeqIds = _observationPeriodReference["observationPeriodSeqId"];
   observationPeriodStartDates = _observationPeriodReference["observationPeriodStartDate"];
   observationPeriodEndDates = _observationPeriodReference["observationPeriodEndDate"];
-  
+  // Rcpp::Rcout << observationPeriodIds.length() << " length\n";
   loadNextConceptDatas();
 }
 
 
 void PersonDataIterator::loadNextConceptDatas() {
+  //  Environment base = Environment::namespace_env("base");
+  // Function writeLines = base["writeLines"];
+  // writeLines("Check 2\n");
+  
   List conceptDatas = conceptDataIterator.next();
   conceptDataStartDays = conceptDatas["startDay"];
   conceptDataEndDays = conceptDatas["endDay"];
   conceptDataConceptIds = conceptDatas["conceptId"];
   conceptDataObservationPeriodSeqIds = conceptDatas["observationPeriodSeqId"];
+  
+  // writeLines("Check 3\n");
 }
 
 bool PersonDataIterator::hasNext() {
@@ -56,15 +62,14 @@ bool PersonDataIterator::hasNext() {
 }
 
 PersonData PersonDataIterator::next() {
-  int observationPeriodSeqId = observationPeriodSeqIds[observationPeriodCursor];
-  PersonData nextPerson(personIds[observationPeriodCursor],
-                        observationPeriodIds[observationPeriodCursor],
-                                            observationPeriodSeqId,
-                                            observationPeriodStartDates[observationPeriodCursor],
-                                                                       observationPeriodEndDates[observationPeriodCursor]);
+  int observationPeriodSeqId = observationPeriodSeqIds.at(observationPeriodCursor);
+  PersonData nextPerson(personIds.at(observationPeriodCursor),
+                        observationPeriodIds.at(observationPeriodCursor),
+                        observationPeriodSeqId,
+                        observationPeriodStartDates.at(observationPeriodCursor),
+                        observationPeriodEndDates.at(observationPeriodCursor));
   observationPeriodCursor++;
-  
-  while (conceptDataCursor < conceptDataObservationPeriodSeqIds.length() && conceptDataObservationPeriodSeqIds[conceptDataCursor] < observationPeriodSeqId) {
+  while (conceptDataCursor < conceptDataObservationPeriodSeqIds.length() && conceptDataObservationPeriodSeqIds.at(conceptDataCursor) < observationPeriodSeqId) {
     conceptDataCursor++;
     if (conceptDataCursor == conceptDataObservationPeriodSeqIds.length()){
       if (conceptDataIterator.hasNext()){
@@ -75,8 +80,8 @@ PersonData PersonDataIterator::next() {
       }
     }
   }
-  while (conceptDataCursor < conceptDataObservationPeriodSeqIds.length() && conceptDataObservationPeriodSeqIds[conceptDataCursor] == observationPeriodSeqId) {
-    ConceptData conceptData(conceptDataStartDays[conceptDataCursor], conceptDataEndDays[conceptDataCursor], conceptDataConceptIds[conceptDataCursor]);
+  while (conceptDataCursor < conceptDataObservationPeriodSeqIds.length() && conceptDataObservationPeriodSeqIds.at(conceptDataCursor) == observationPeriodSeqId) {
+    ConceptData conceptData(conceptDataStartDays.at(conceptDataCursor), conceptDataEndDays.at(conceptDataCursor), conceptDataConceptIds.at(conceptDataCursor));
     nextPerson.conceptDatas -> push_back(conceptData);
     conceptDataCursor++;
     if (conceptDataCursor == conceptDataObservationPeriodSeqIds.length()){

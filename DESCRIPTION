@@ -14,7 +14,8 @@ Imports:
   rlang,
   dplyr,
   ParallelLogger,
-  text2vec
+  text2vec,
+  Matrix
 Remotes:
   ohdsi/DatabaseConnector,
   ohdsi/SqlRender

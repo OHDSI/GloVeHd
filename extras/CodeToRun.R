@@ -1,4 +1,4 @@
-library(InteractionsEval)
+library(GloVeHd)
 
 options(andromedaTempFolder = "d:/andromedaTemp")
 maxCores <- max(24, parallel::detectCores())
@@ -30,8 +30,11 @@ sampleTable <- "glovehd_optum_ehr"
 folder <- "d:/glovehd_OptumEhr"
 
 # Data fetch -------------------------------------------------------------------
+if (!dir.exists(folder)) {
+  dir.create(folder)
+}
 
-extractData(
+data <- extractData(
   connectionDetails = connectionDetails,
   cdmDatabaseSchema = cdmDatabaseSchema,
   workDatabaseSchema = workDatabaseSchema,
@@ -40,9 +43,21 @@ extractData(
   sampleSize = 1e5,
   chunkSize = 25000
 ) 
+Andromeda::saveAndromeda(data, file.path(folder, "Data.zip"))
+
+# Co-occurrence matrix construction --------------------------------------------
+data <- Andromeda::loadAndromeda(file.path(folder, "Data.zip"))
+matrix <- createMatrix(data)
+saveRDS(matrix, file.path(folder, "Matrix.rds"))
+
+# Compute global concept vectors -----------------------------------------------
+matrix <- readRDS(file.path(folder, "Matrix.rds"))
+conceptVectors <- computeGlobalVectors(matrix, vectorSize = 300, maxCores = maxCores)
+saveRDS(conceptVectors, file.path(folder, "ConceptVectors.rds"))
+
+# Get similar concepts ---------------------------------------------------------
+conceptVectors <- readRDS(file.path(folder, "ConceptVectors.rds"))
+getSimilarConcepts(conceptId = 312327, conceptVectors = conceptVectors, n = 25)
+getSimilarConcepts(conceptId = 2005415, conceptVectors = conceptVectors, n = 25)
 
 
-andromeda <- Andromeda::loadAndromeda(file.path(folder, "Data.zip"))
-dplyr::count(andromeda$conceptData)
-andromeda$conceptReference
-andromeda$observationPeriodReference

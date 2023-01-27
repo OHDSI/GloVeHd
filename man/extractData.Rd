@@ -9,7 +9,6 @@ extractData(
   cdmDatabaseSchema,
   workDatabaseSchema,
   sampleTable = "glovehd_sample",
-  folder,
   sampleSize = 1e+06,
   chunkSize = 25000
 )
@@ -27,9 +26,6 @@ so for example 'cdm_instance.dbo'.}
 
 \item{sampleTable}{The name of the table where the sampled observation period IDs
 will be stored.}
-
-\item{folder}{Path to a folder in the local file system where the data will
-be written.}
 
 \item{sampleSize}{The number of observation periods to be included in the sample.}
 
