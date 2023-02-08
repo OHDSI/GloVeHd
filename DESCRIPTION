@@ -15,10 +15,10 @@ Imports:
   dplyr,
   ParallelLogger,
   text2vec,
-  Matrix
+  Matrix,
+  FeatureExtraction
 Remotes:
-  ohdsi/DatabaseConnector,
-  ohdsi/SqlRender
+  ohdsi/FeatureExtaction
 License: Apache License
 RoxygenNote: 7.2.3
 Roxygen: list(markdown = TRUE)
