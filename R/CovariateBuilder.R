@@ -21,6 +21,10 @@
 #' @param type        Either "binary" or "count".
 #' @param windowStart A vector representing the start (in days relative to cohort start) of windows.
 #' @param windowEnd   A vector representing the end (in days relative to cohort start) of windows.
+#' @param analysisIdOffset      The first analysis ID to use for the covariates. 
+#'                              Each time window will receive a separate analysis 
+#'                              ID. The last 3 digits of the covariate IDs will be 
+#'                              the analysis ID.
 #'
 #' @return
 #' An object of type `covariateSettings`, to be used with prediction models.
@@ -28,7 +32,8 @@
 #' @export
 createBaseCovariateSettings <- function(type = "binary",
                                         windowStart = c(-365, -180, -30),
-                                        windowEnd = c(0, 0, 0)) {
+                                        windowEnd = c(0, 0, 0),
+                                        analysisIdOffset = 930) {
   if (type == "binary") {
     sqlFileName <- "DomainConcept.sql"
     subType <- "all"
@@ -39,10 +44,10 @@ createBaseCovariateSettings <- function(type = "binary",
   analyses <- list()
   for (i in seq_along(windowStart)) {
     analyses[[length(analyses) + 1]] <- FeatureExtraction::createAnalysisDetails(
-      analysisId = 100 + i,
+      analysisId = analysisIdOffset + (i - 1) * 10,
       sqlFileName = sqlFileName ,
       parameters = list(
-        analysisId = 100 + i,
+        analysisId = analysisIdOffset + (i - 1) * 10,
         analysisName = sprintf("Visit concepts in days %d - %d", windowStart[i], windowEnd[i]),
         startDay = windowStart[i],
         endDay = windowEnd[i],
@@ -55,10 +60,10 @@ createBaseCovariateSettings <- function(type = "binary",
       )
     )
     analyses[[length(analyses) + 1]] <- FeatureExtraction::createAnalysisDetails(
-      analysisId = 200 + i,
+      analysisId = analysisIdOffset + (i - 1) * 10 + 1,
       sqlFileName = sqlFileName ,
       parameters = list(
-        analysisId = 200 + i,
+        analysisId = analysisIdOffset + (i - 1) * 10 + 1,
         analysisName = sprintf("Condition concepts in days %d - %d", windowStart[i], windowEnd[i]),
         startDay = windowStart[i],
         endDay = windowEnd[i],
@@ -71,10 +76,10 @@ createBaseCovariateSettings <- function(type = "binary",
       )
     )
     analyses[[length(analyses) + 1]] <- FeatureExtraction::createAnalysisDetails(
-      analysisId = 300 + i,
+      analysisId = analysisIdOffset + (i - 1) * 10 + 2,
       sqlFileName = sqlFileName ,
       parameters = list(
-        analysisId = 300 + i,
+        analysisId = analysisIdOffset + (i - 1) * 10 + 2,
         analysisName = sprintf("Drug concepts in days %d - %d", windowStart[i], windowEnd[i]),
         startDay = windowStart[i],
         endDay = windowEnd[i],
@@ -87,10 +92,10 @@ createBaseCovariateSettings <- function(type = "binary",
       )
     )
     analyses[[length(analyses) + 1]] <- FeatureExtraction::createAnalysisDetails(
-      analysisId = 400 + i,
+      analysisId = analysisIdOffset + (i - 1) * 10 + 3,
       sqlFileName = sqlFileName ,
       parameters = list(
-        analysisId = 400 + i,
+        analysisId = analysisIdOffset + (i - 1) * 10 + 3,
         analysisName = sprintf("Procedure concepts in days %d - %d", windowStart[i], windowEnd[i]),
         startDay = windowStart[i],
         endDay = windowEnd[i],
@@ -103,10 +108,10 @@ createBaseCovariateSettings <- function(type = "binary",
       )
     )
     analyses[[length(analyses) + 1]] <- FeatureExtraction::createAnalysisDetails(
-      analysisId = 500 + i,
+      analysisId = analysisIdOffset + (i - 1) * 10 + 4,
       sqlFileName = sqlFileName ,
       parameters = list(
-        analysisId = 500 + i,
+        analysisId = analysisIdOffset + (i - 1) * 10 + 4,
         analysisName = sprintf("Device concepts in days %d - %d", windowStart[i], windowEnd[i]),
         startDay = windowStart[i],
         endDay = windowEnd[i],
@@ -119,10 +124,10 @@ createBaseCovariateSettings <- function(type = "binary",
       )
     )
     analyses[[length(analyses) + 1]] <- FeatureExtraction::createAnalysisDetails(
-      analysisId = 600 + i,
+      analysisId = analysisIdOffset + (i - 1) * 10 + 5,
       sqlFileName = sqlFileName ,
       parameters = list(
-        analysisId = 600 + i,
+        analysisId = analysisIdOffset + (i - 1) * 10 + 5,
         analysisName = sprintf("Measurement concepts in days %d - %d", windowStart[i], windowEnd[i]),
         startDay = windowStart[i],
         endDay = windowEnd[i],
@@ -135,10 +140,10 @@ createBaseCovariateSettings <- function(type = "binary",
       )
     )
     analyses[[length(analyses) + 1]] <- FeatureExtraction::createAnalysisDetails(
-      analysisId = 700 + i,
+      analysisId = analysisIdOffset + (i - 1) * 10 + 6,
       sqlFileName = sqlFileName ,
       parameters = list(
-        analysisId = 700 + i,
+        analysisId = analysisIdOffset + (i - 1) * 10 + 6,
         analysisName = sprintf("Observation concepts in days %d - %d", windowStart[i], windowEnd[i]),
         startDay = windowStart[i],
         endDay = windowEnd[i],
@@ -164,15 +169,24 @@ createBaseCovariateSettings <- function(type = "binary",
 #'                              `createBaseCovariateSettings()` function.
 #' @param conceptVectors        The global concept vectors as created using the 
 #'                              `computeGlobalVectors()` function.
+#' @param analysisIdOffset      The first analysis ID to use for the covariates. 
+#'                              Each time window will receive a separate analysis 
+#'                              ID. The last 3 digits of the covariate IDs will be 
+#'                              the analysis ID.
 #'
 #' @return
 #' An object of type `covariateSettings`, to be used with prediction models.
 #' 
 #' @export
 createGloVeCovariateSettings <- function(baseCovariateSettings = createBaseCovariateSettings(),
-                                         conceptVectors) {
+                                         conceptVectors,
+                                         analysisIdOffset = 990) {
+  # Note: Row names get lost, possibly because settings are converted to JSON and back,
+  # so storing separately:
   covariateSettings <- list(baseCovariateSettings = baseCovariateSettings,
-                            conceptVectors = conceptVectors)
+                            conceptVectors = conceptVectors,
+                            conceptIds = as.numeric(rownames(conceptVectors)),
+                            analysisIdOffset = analysisIdOffset)
   attr(covariateSettings, "fun") <- "GloVeHd:::getGloVeCovariates"
   class(covariateSettings) <- "covariateSettings"
   return(covariateSettings)
@@ -201,16 +215,20 @@ getGloVeCovariates <- function(connection,
     covariateSettings = covariateSettings$baseCovariateSettings,
     aggregated = FALSE
   )
-  covariateData <- convertCovariateData(baseCovariateData, covariateSettings$conceptVectors)
+  covariateData <- convertCovariateData(
+    baseCovariateData = baseCovariateData, 
+    conceptVectors = covariateSettings$conceptVectors,
+    conceptIds = covariateSettings$conceptIds,
+    analysisIdOffset = covariateSettings$analysisIdOffset)
   return(covariateData)
 }
 
-convertCovariateData <- function(baseCovariateData, conceptVectors) {
+convertCovariateData <- function(baseCovariateData, conceptVectors, conceptIds, analysisIdOffset) {
   message("Deriving GloVe features from concept features")
   newAnalysisRef <- baseCovariateData$analysisRef %>%
     distinct(.data$startDay, .data$endDay) %>%
     collect() %>%
-    mutate(analysisId = row_number(),
+    mutate(analysisId = analysisIdOffset + row_number() - 1,
            analysisName = sprintf("Global vectors days %d - %s", .data$startDay, .data$endDay),
            domainId = "All",
            isBinary = "N",
@@ -220,7 +238,11 @@ convertCovariateData <- function(baseCovariateData, conceptVectors) {
     analysisRef = newAnalysisRef
   )
   for (i in seq_len(nrow(newAnalysisRef))) {
-    newCovariates <- computeNewCovariatesForWindow(newAnalysisRef[i, ], baseCovariateData, conceptVectors)
+    newCovariates <- computeNewCovariatesForWindow(
+      window = newAnalysisRef[i, ], 
+      baseCovariateData = baseCovariateData, 
+      conceptVectors = conceptVectors,
+      conceptIds = conceptIds)
     newCovariateRef <- tibble(
       covariateId = seq_len(ncol(conceptVectors)) * 1000 + newAnalysisRef$analysisId[i],
       covariateName = sprintf(
@@ -245,15 +267,18 @@ convertCovariateData <- function(baseCovariateData, conceptVectors) {
   attr(class(newCovariateData),"package") <- "FeatureExtraction"
   return(newCovariateData)
 }
-computeNewCovariatesForWindow <- function(window, baseCovariateData, conceptVectors) {
+computeNewCovariatesForWindow <- function(window, baseCovariateData, conceptVectors, conceptIds) {
   
   computeAverageConceptVector <- function(rows, rowId) {
-    idx <- match(rows$conceptId, conceptIdToIndex)
+    idx <- match(rows$conceptId, conceptIds)
+    if (all(is.na(idx))) {
+      return(NULL)
+    }
     sums <- apply(conceptVectors[idx, , drop = FALSE] * rows$covariateValue, 2, sum, na.rm = TRUE)
     n <- sum(rows$covariateValue[!is.na(idx)])
     tibble(
       rowId = rowId$rowId[1],
-      covariateId = seq_along(sums) * 1000+ window$analysisId,
+      covariateId = seq_along(sums) * 1000 + window$analysisId,
       covariateValue = sums / n
     ) %>%
       return()
@@ -273,7 +298,6 @@ computeNewCovariatesForWindow <- function(window, baseCovariateData, conceptVect
     collect() %>%
     mutate(conceptId = round(.data$covariateId / 1000)) %>%
     select("rowId", "conceptId", "covariateValue")
-  conceptIdToIndex <- round(as.numeric(rownames(conceptVectors)))
   newCovariates <- conceptCovariates %>%
     group_by(.data$rowId) %>%
     group_map(computeAverageConceptVector) %>%

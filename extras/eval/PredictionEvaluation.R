@@ -19,6 +19,18 @@ cohortDatabaseSchema <- "scratch_mschuemi2"
 cohortTable <- "glove_prediction_cohorts_mdcd"
 folder <- "d:/glovehd_MDCD"
 
+# Optum EHR
+connectionDetails <- DatabaseConnector::createConnectionDetails(
+  dbms = "redshift",
+  connectionString = keyring::key_get("redShiftConnectionStringOhdaOptumEhr"),
+  user = keyring::key_get("temp_user"),
+  password = keyring::key_get("temp_password")
+)
+cdmDatabaseSchema <- "cdm_optum_ehr_v2247"
+cohortDatabaseSchema <- "scratch_mschuemi"
+cohortTable <- "glove_prediction_cohorts_optum_ehr"
+folder <- "d:/glovehd_OptumEhr"
+
 # Get cohort definitions -------------------------------------------------------
 ROhdsiWebApi::authorizeWebApi(
   baseUrl = Sys.getenv("baseUrl"),
@@ -49,8 +61,11 @@ CohortGenerator::generateCohortSet(
 DatabaseConnector::disconnect(connection)
 
 # Run prediction ---------------------------------------------------------------
-restrictPlpDataSettings <- PatientLevelPrediction::createRestrictPlpDataSettings(
+restrictPlpDataSettings1 <- PatientLevelPrediction::createRestrictPlpDataSettings(
   sampleSize = 100000
+)
+restrictPlpDataSettings2 <- PatientLevelPrediction::createRestrictPlpDataSettings(
+  sampleSize = 10000
 )
 populationSettings1 = PatientLevelPrediction::createStudyPopulationSettings(
   washoutPeriod = 365,
@@ -62,9 +77,25 @@ populationSettings1 = PatientLevelPrediction::createStudyPopulationSettings(
   priorOutcomeLookback = 999999,
   requireTimeAtRisk = FALSE
 )
+populationSettings2 = PatientLevelPrediction::createStudyPopulationSettings(
+  washoutPeriod = 365,
+  riskWindowStart = 2,
+  startAnchor = "cohort start",
+  riskWindowEnd = 365,
+  endAnchor = "cohort start",
+  removeSubjectsWithPriorOutcome = TRUE,
+  priorOutcomeLookback = 999999,
+  requireTimeAtRisk = FALSE
+)
+demographicsCovariateSettings <- FeatureExtraction::createCovariateSettings(
+  useDemographicsGender = TRUE,
+  useDemographicsAgeGroup = TRUE,
+  useDemographicsRace = TRUE,
+  useDemographicsEthnicity = TRUE
+)
 baseCovariateSettings <- GloVeHd::createBaseCovariateSettings(type = "binary")
 conceptVectors <- readRDS(file.path(folder, "ConceptVectors.rds"))
-gloVeCovariateSettings <- createGloVeCovariateSettings(
+gloVeCovariateSettings <- GloVeHd::createGloVeCovariateSettings(
   baseCovariateSettings = baseCovariateSettings,
   conceptVectors = conceptVectors
 )
@@ -75,28 +106,126 @@ modelSettings <- PatientLevelPrediction::setLassoLogisticRegression()
 modelDesign1 <- PatientLevelPrediction::createModelDesign(
   targetId = targetId1,
   outcomeId = outcomeId1,
-  restrictPlpDataSettings = restrictPlpDataSettings,
-  covariateSettings = baseCovariateSettings,
+  populationSettings = populationSettings1,
+  restrictPlpDataSettings = restrictPlpDataSettings1,
+  covariateSettings = list(baseCovariateSettings, demographicsCovariateSettings),
   preprocessSettings = PatientLevelPrediction::createPreprocessSettings(),
   modelSettings = modelSettings
 )
 modelDesign2 <- PatientLevelPrediction::createModelDesign(
   targetId = targetId1,
   outcomeId = outcomeId1,
-  restrictPlpDataSettings = restrictPlpDataSettings,
-  covariateSettings = gloVeCovariateSettings,
+  populationSettings = populationSettings1,
+  restrictPlpDataSettings = restrictPlpDataSettings1,
+  covariateSettings = list(gloVeCovariateSettings, demographicsCovariateSettings),
   preprocessSettings = PatientLevelPrediction::createPreprocessSettings(normalize = FALSE),
   modelSettings = modelSettings
 )
 modelDesign3 <- PatientLevelPrediction::createModelDesign(
   targetId = targetId1,
   outcomeId = outcomeId1,
-  restrictPlpDataSettings = restrictPlpDataSettings,
+  populationSettings = populationSettings1,
+  restrictPlpDataSettings = restrictPlpDataSettings1,
   covariateSettings = defaultCovariateSettings,
   preprocessSettings = PatientLevelPrediction::createPreprocessSettings(),
   modelSettings = modelSettings
 )
-modelDesignList <- list(modelDesign1, modelDesign2, modelDesign3)
+modelDesign4 <- PatientLevelPrediction::createModelDesign(
+  targetId = targetId1,
+  outcomeId = outcomeId1,
+  populationSettings = populationSettings1,
+  restrictPlpDataSettings = restrictPlpDataSettings1,
+  covariateSettings = demographicsCovariateSettings,
+  preprocessSettings = PatientLevelPrediction::createPreprocessSettings(),
+  modelSettings = modelSettings
+)
+modelDesign5 <- PatientLevelPrediction::createModelDesign(
+  targetId = targetId2,
+  outcomeId = outcomeId2,
+  populationSettings = populationSettings2,
+  restrictPlpDataSettings = restrictPlpDataSettings2,
+  covariateSettings = list(baseCovariateSettings, demographicsCovariateSettings),
+  preprocessSettings = PatientLevelPrediction::createPreprocessSettings(),
+  modelSettings = modelSettings
+)
+modelDesign6 <- PatientLevelPrediction::createModelDesign(
+  targetId = targetId2,
+  outcomeId = outcomeId2,
+  populationSettings = populationSettings2,
+  restrictPlpDataSettings = restrictPlpDataSettings2,
+  covariateSettings = list(gloVeCovariateSettings, demographicsCovariateSettings),
+  preprocessSettings = PatientLevelPrediction::createPreprocessSettings(normalize = FALSE),
+  modelSettings = modelSettings
+)
+modelDesign7 <- PatientLevelPrediction::createModelDesign(
+  targetId = targetId2,
+  outcomeId = outcomeId2,
+  populationSettings = populationSettings2,
+  restrictPlpDataSettings = restrictPlpDataSettings2,
+  covariateSettings = defaultCovariateSettings,
+  preprocessSettings = PatientLevelPrediction::createPreprocessSettings(),
+  modelSettings = modelSettings
+)
+modelDesign8 <- PatientLevelPrediction::createModelDesign(
+  targetId = targetId2,
+  outcomeId = outcomeId2,
+  populationSettings = populationSettings2,
+  restrictPlpDataSettings = restrictPlpDataSettings2,
+  covariateSettings = demographicsCovariateSettings,
+  preprocessSettings = PatientLevelPrediction::createPreprocessSettings(),
+  modelSettings = modelSettings
+)
+modelDesign9 <- PatientLevelPrediction::createModelDesign(
+  targetId = targetId3,
+  outcomeId = outcomeId3,
+  populationSettings = populationSettings2,
+  restrictPlpDataSettings = restrictPlpDataSettings2,
+  covariateSettings = list(baseCovariateSettings, demographicsCovariateSettings),
+  preprocessSettings = PatientLevelPrediction::createPreprocessSettings(),
+  modelSettings = modelSettings
+)
+modelDesign10 <- PatientLevelPrediction::createModelDesign(
+  targetId = targetId3,
+  outcomeId = outcomeId3,
+  populationSettings = populationSettings2,
+  restrictPlpDataSettings = restrictPlpDataSettings2,
+  covariateSettings = list(gloVeCovariateSettings, demographicsCovariateSettings),
+  preprocessSettings = PatientLevelPrediction::createPreprocessSettings(normalize = FALSE),
+  modelSettings = modelSettings
+)
+modelDesign11 <- PatientLevelPrediction::createModelDesign(
+  targetId = targetId3,
+  outcomeId = outcomeId3,
+  populationSettings = populationSettings2,
+  restrictPlpDataSettings = restrictPlpDataSettings2,
+  covariateSettings = defaultCovariateSettings,
+  preprocessSettings = PatientLevelPrediction::createPreprocessSettings(),
+  modelSettings = modelSettings
+)
+modelDesign12 <- PatientLevelPrediction::createModelDesign(
+  targetId = targetId3,
+  outcomeId = outcomeId3,
+  populationSettings = populationSettings2,
+  restrictPlpDataSettings = restrictPlpDataSettings2,
+  covariateSettings = demographicsCovariateSettings,
+  preprocessSettings = PatientLevelPrediction::createPreprocessSettings(),
+  modelSettings = modelSettings
+)
+
+modelDesignList <- list(
+  modelDesign1, 
+  modelDesign2, 
+  modelDesign3, 
+  modelDesign4, 
+  modelDesign5, 
+  modelDesign6, 
+  modelDesign7, 
+  modelDesign8, 
+  modelDesign9,
+  modelDesign10, 
+  modelDesign11, 
+  modelDesign12
+)
 databaseDetails <- PatientLevelPrediction::createDatabaseDetails(
   connectionDetails = connectionDetails, 
   cdmDatabaseSchema = cdmDatabaseSchema, 
@@ -118,18 +247,21 @@ results <- PatientLevelPrediction::runMultiplePlp(
 )
 ParallelLogger::unregisterLogger("PLPLOG")
 
+# View results ----------------------------------------------------------------
 PatientLevelPrediction::viewMultiplePlp(file.path(folder, "Plp"))
 
-runPlp <- readRDS(file.path(folder, "Plp", "Analysis_1", "plpResult", "runPlp.rds"))
-runPlp$performanceEvaluation$evaluationStatistics
+reportResult <- function(analysisId) {
+  runPlp <- readRDS(file.path(folder, "Plp", sprintf("Analysis_%d", analysisId), "plpResult", "runPlp.rds"))
+  print(runPlp$performanceEvaluation$evaluationStatistics[3, ])
+}
 
-runPlp <- readRDS(file.path(folder, "Plp", "Analysis_2", "plpResult", "runPlp.rds"))
-runPlp$performanceEvaluation$evaluationStatistics
-
-runPlp <- readRDS(file.path(folder, "Plp", "Analysis_3", "plpResult", "runPlp.rds"))
-runPlp$performanceEvaluation$evaluationStatistics
-
-# baseCovariateData <- FeatureExtraction::loadCovariateData(file.path(folder, "Plp", "targetId_301_L1", "covariates"))
+for (i in 1:12)
+  reportResult(i)
 
 
+baseCovariateData <- FeatureExtraction::loadCovariateData(file.path(folder, "Plp", "targetId_301_L1", "covariates"))
+covariateData <- FeatureExtraction::loadCovariateData(file.path(folder, "Plp", "targetId_301_L2", "covariates"))
 
+
+
+sum(as.numeric(rownames(conceptVectors)) == 900000010)

@@ -29,6 +29,30 @@ workDatabaseSchema <- "scratch_mschuemi"
 sampleTable <- "glovehd_optum_ehr"
 folder <- "d:/glovehd_OptumEhr"
 
+# Premier
+connectionDetails <- DatabaseConnector::createConnectionDetails(
+  dbms = "redshift",
+  connectionString = keyring::key_get("redShiftConnectionStringOhdaPremier"),
+  user = keyring::key_get("redShiftUserName"),
+  password = keyring::key_get("redShiftPassword")
+)
+cdmDatabaseSchema <- "cdm_premier_v2184"
+workDatabaseSchema <- "scratch_mschuemi"
+sampleTable <- "glovehd_premier"
+folder <- "d:/glovehd_premier"
+
+# CPRD
+connectionDetails <- DatabaseConnector::createConnectionDetails(
+  dbms = "redshift",
+  connectionString = keyring::key_get("redShiftConnectionStringOhdaCprd"),
+  user = keyring::key_get("redShiftUserName"),
+  password = keyring::key_get("redShiftPassword")
+)
+cdmDatabaseSchema <- "cdm_cprd_v2151"
+workDatabaseSchema <- "scratch_mschuemi"
+sampleTable <- "glovehd_cprd"
+folder <- "d:/glovehd_cprd"
+
 # Data fetch -------------------------------------------------------------------
 if (!dir.exists(folder)) {
   dir.create(folder)
@@ -39,7 +63,6 @@ data <- extractData(
   cdmDatabaseSchema = cdmDatabaseSchema,
   workDatabaseSchema = workDatabaseSchema,
   sampleTable = sampleTable,
-  folder = folder,
   sampleSize = 1e5,
   chunkSize = 25000
 ) 

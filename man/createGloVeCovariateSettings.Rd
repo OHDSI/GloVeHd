@@ -6,7 +6,8 @@
 \usage{
 createGloVeCovariateSettings(
   baseCovariateSettings = createBaseCovariateSettings(),
-  conceptVectors
+  conceptVectors,
+  analysisIdOffset = 990
 )
 }
 \arguments{
@@ -15,6 +16,11 @@ createGloVeCovariateSettings(
 
 \item{conceptVectors}{The global concept vectors as created using the
 \code{computeGlobalVectors()} function.}
+
+\item{analysisIdOffset}{The first analysis ID to use for the covariates.
+Each time window will receive a separate analysis
+ID. The last 3 digits of the covariate IDs will be
+the analysis ID.}
 }
 \value{
 An object of type \code{covariateSettings}, to be used with prediction models.
