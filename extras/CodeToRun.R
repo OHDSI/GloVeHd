@@ -8,12 +8,12 @@ maxCores <- max(24, parallel::detectCores())
 # MDCD
 connectionDetails <- DatabaseConnector::createConnectionDetails(
   dbms = "redshift",
-  connectionString = keyring::key_get("redShiftConnectionStringMdcd"),
+  connectionString = keyring::key_get("redShiftConnectionStringOhdaMdcd"),
   user = keyring::key_get("redShiftUserName"),
   password = keyring::key_get("redShiftPassword")
 )
-cdmDatabaseSchema <- "cdm"
-workDatabaseSchema <- "scratch_mschuemi2"
+cdmDatabaseSchema <- "cdm_truven_mdcd_v2321"
+workDatabaseSchema <- "scratch_mschuemi"
 sampleTable <- "glovehd_mdcd"
 folder <- "d:/glovehd_MDCD"
 
@@ -63,8 +63,8 @@ data <- extractData(
   cdmDatabaseSchema = cdmDatabaseSchema,
   workDatabaseSchema = workDatabaseSchema,
   sampleTable = sampleTable,
-  sampleSize = 1e5,
-  chunkSize = 25000
+  sampleSize = 1e6,
+  chunkSize = 1e5
 ) 
 Andromeda::saveAndromeda(data, file.path(folder, "Data.zip"))
 
@@ -75,6 +75,7 @@ saveRDS(matrix, file.path(folder, "Matrix.rds"))
 
 # Compute global concept vectors -----------------------------------------------
 matrix <- readRDS(file.path(folder, "Matrix.rds"))
+cutoff <- 25
 conceptVectors <- computeGlobalVectors(matrix, vectorSize = 300, maxCores = maxCores)
 saveRDS(conceptVectors, file.path(folder, "ConceptVectors.rds"))
 

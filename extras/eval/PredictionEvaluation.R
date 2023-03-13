@@ -10,12 +10,12 @@ outcomeId3 <- 6243  # Dementia
 # MDCD
 connectionDetails <- DatabaseConnector::createConnectionDetails(
   dbms = "redshift",
-  connectionString = keyring::key_get("redShiftConnectionStringMdcd"),
+  connectionString = keyring::key_get("redShiftConnectionStringOhdaMdcd"),
   user = keyring::key_get("redShiftUserName"),
   password = keyring::key_get("redShiftPassword")
 )
-cdmDatabaseSchema <- "cdm"
-cohortDatabaseSchema <- "scratch_mschuemi2"
+cdmDatabaseSchema <- "cdm_truven_mdcd_v2321"
+cohortDatabaseSchema <- "scratch_mschuemi"
 cohortTable <- "glove_prediction_cohorts_mdcd"
 folder <- "d:/glovehd_MDCD"
 
@@ -250,14 +250,27 @@ ParallelLogger::unregisterLogger("PLPLOG")
 # View results ----------------------------------------------------------------
 PatientLevelPrediction::viewMultiplePlp(file.path(folder, "Plp"))
 
-reportResult <- function(analysisId) {
+library(dplyr)
+getStats <- function(analysisId) {
   runPlp <- readRDS(file.path(folder, "Plp", sprintf("Analysis_%d", analysisId), "plpResult", "runPlp.rds"))
-  print(runPlp$performanceEvaluation$evaluationStatistics[3, ])
+  return(tibble(
+    trainPopulationSize = as.numeric(runPlp$performanceEvaluation$evaluationStatistics$value[[20]]),
+    trainOutcomeCount = as.numeric(runPlp$performanceEvaluation$evaluationStatistics$value[[21]]),
+    testAUC = as.numeric(runPlp$performanceEvaluation$evaluationStatistics$value[[3]]),
+    testBrierScore = as.numeric(runPlp$performanceEvaluation$evaluationStatistics$value[[7]])
+  ))
 }
 
-for (i in 1:12)
-  reportResult(i)
 
+results <- tibble(
+  outcome = rep(c("Lung cancer", "Bipolar disorder", "Dementia"), each = 4),
+  covariates = rep(c("Verbatim concepts + demographics", "GloVe + demographics", "FeatureExtraction default", "Demographics"), 3)
+)
+
+stats <- lapply(1:12, getStats)
+stats <- bind_rows(stats)
+results <- bind_cols(results, stats)
+readr::write_csv(results, file.path(folder, "Results.csv"))
 
 baseCovariateData <- FeatureExtraction::loadCovariateData(file.path(folder, "Plp", "targetId_301_L1", "covariates"))
 covariateData <- FeatureExtraction::loadCovariateData(file.path(folder, "Plp", "targetId_301_L2", "covariates"))

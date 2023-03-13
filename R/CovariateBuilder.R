@@ -296,7 +296,7 @@ computeNewCovariatesForWindow <- function(window, baseCovariateData, conceptVect
   conceptCovariates <- baseCovariateData$covariates %>%
     filter(.data$covariateId %in% covariateIds) %>%
     collect() %>%
-    mutate(conceptId = round(.data$covariateId / 1000)) %>%
+    mutate(conceptId = floor(.data$covariateId / 1000)) %>%
     select("rowId", "conceptId", "covariateValue")
   newCovariates <- conceptCovariates %>%
     group_by(.data$rowId) %>%
