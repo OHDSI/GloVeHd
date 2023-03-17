@@ -75,7 +75,6 @@ saveRDS(matrix, file.path(folder, "Matrix.rds"))
 
 # Compute global concept vectors -----------------------------------------------
 matrix <- readRDS(file.path(folder, "Matrix.rds"))
-cutoff <- 25
 conceptVectors <- computeGlobalVectors(matrix, vectorSize = 300, maxCores = maxCores)
 saveRDS(conceptVectors, file.path(folder, "ConceptVectors.rds"))
 
