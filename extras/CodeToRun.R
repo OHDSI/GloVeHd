@@ -70,7 +70,7 @@ Andromeda::saveAndromeda(data, file.path(folder, "Data.zip"))
 
 # Co-occurrence matrix construction --------------------------------------------
 data <- Andromeda::loadAndromeda(file.path(folder, "Data.zip"))
-matrix <- createMatrix(data)
+matrix <- createMatrix(data, rollUpConcepts = TRUE)
 saveRDS(matrix, file.path(folder, "Matrix.rds"))
 
 # Compute global concept vectors -----------------------------------------------
@@ -83,3 +83,5 @@ conceptVectors <- readRDS(file.path(folder, "ConceptVectors.rds"))
 getSimilarConcepts(conceptId = 312327, conceptVectors = conceptVectors, n = 25)
 getSimilarConcepts(conceptId = 2005415, conceptVectors = conceptVectors, n = 25)
 getSimilarConcepts(conceptId = 1124300, conceptVectors = conceptVectors, n = 25)
+
+

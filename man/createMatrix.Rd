@@ -4,10 +4,13 @@
 \alias{createMatrix}
 \title{Create concept co-occurrence matrix}
 \usage{
-createMatrix(data)
+createMatrix(data, rollUpConcepts = TRUE)
 }
 \arguments{
 \item{data}{An Andromeda object as created using \code{\link[=extractData]{extractData()}}.}
+
+\item{rollUpConcept}{Should concepts be expanded to include all their ancestors
+as well?}
 }
 \value{
 Returns a spare matrix containing the concept co-occurrences. For your

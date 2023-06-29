@@ -9,6 +9,7 @@ Description: Apply the GloVe algorithm to data in the OMOP Common Data Model.
 Depends:
   DatabaseConnector (>= 6.0.0)
 Imports:
+  Rcpp,
   SqlRender (>= 1.12.0),
   readr,
   rlang,

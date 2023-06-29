@@ -30,12 +30,13 @@ S4 buildMatrix(const List& conceptData,
                const std::vector<double>& weights,
                const int windowSize,
                const int context,
-               const std::vector<double>& conceptIds) {
+               const std::vector<double>& conceptIds,
+               const DataFrame& conceptAncestor) {
 
   using namespace ohdsi::glovehd;
 
   try {
-    MatrixBuilder matrixBuilder(conceptData, observationPeriodReference, weights, windowSize, context, conceptIds);
+    MatrixBuilder matrixBuilder(conceptData, observationPeriodReference, weights, windowSize, context, conceptIds, conceptAncestor);
     S4 matrix = matrixBuilder.buildMatrix();
     return matrix;
   } catch (std::exception &e) {

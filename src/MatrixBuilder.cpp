@@ -35,9 +35,10 @@ MatrixBuilder::MatrixBuilder(const List& _conceptData,
                              const std::vector<double>& _weights,
                              const int _windowSize,
                              const int _context,
-                             const std::vector<double>& _conceptIds) :
+                             const std::vector<double>& _conceptIds,
+                             const DataFrame& _conceptAncestor) :
 matrix(_conceptIds.size(), _conceptIds.size()),
-personDataIterator(_conceptData, _observationPeriodReference),
+personDataIterator(_conceptData, _observationPeriodReference, _conceptAncestor),
 weights(_weights),
 windowSize(_windowSize),
 context(_context),
@@ -62,24 +63,29 @@ conceptIdToIndex() {
 }
 
 void MatrixBuilder::processPerson(PersonData& personData) {
-  std::sort(personData.conceptDatas->begin(), personData.conceptDatas->end());
   int priorCursor = 0;
   int postCursor = 0;
   int currentDay = -1;
   int conceptDataSize = personData.conceptDatas->size();
-  for (std::vector<ConceptData>::iterator conceptData = personData.conceptDatas->begin(); conceptData != personData.conceptDatas->end(); ++conceptData) {
+  // conceptData is sorted and unique by startDay and conceptId (by PersonDataIterator)
+  for (std::vector<ConceptData>::iterator conceptData = personData.conceptDatas->begin(); 
+       conceptData != personData.conceptDatas->end(); 
+       ++conceptData) {
     if (conceptData->startDay > currentDay) {
       currentDay = conceptData->startDay;
-      while (personData.conceptDatas->at(priorCursor).startDay < currentDay - priorDays && priorCursor < conceptDataSize - 1)
+      while (personData.conceptDatas->at(priorCursor).startDay < currentDay - priorDays && 
+             priorCursor < conceptDataSize - 1)
         priorCursor++;
-      while (personData.conceptDatas->at(postCursor).startDay < currentDay + postDays && postCursor < conceptDataSize - 1)
+      while (personData.conceptDatas->at(postCursor).startDay < currentDay + postDays && 
+             postCursor < conceptDataSize - 1)
         postCursor++;
       if (personData.conceptDatas->at(postCursor).startDay > currentDay + postDays)
         postCursor--;
     }
     for (int i = priorCursor; i <= postCursor; i++) {
       ConceptData contextConceptData = personData.conceptDatas->at(i);
-      if (contextConceptData.startDay != currentDay && contextConceptData.conceptId != conceptData->conceptId) {
+      if (contextConceptData.startDay != currentDay && 
+          contextConceptData.conceptId != conceptData->conceptId) {
         double weight = weights.at(contextConceptData.startDay - currentDay + priorDays);
         int index = conceptIdToIndex[conceptData->conceptId];
         int contextIndex = conceptIdToIndex[contextConceptData.conceptId];

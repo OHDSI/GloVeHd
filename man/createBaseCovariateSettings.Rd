@@ -8,7 +8,7 @@ createBaseCovariateSettings(
   type = "binary",
   windowStart = c(-365, -180, -30),
   windowEnd = c(0, 0, 0),
-  analysisIdOffset = 990
+  analysisIdOffset = 930
 )
 }
 \arguments{

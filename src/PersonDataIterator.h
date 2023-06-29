@@ -36,7 +36,16 @@ struct ConceptData {
   }
   
   bool operator <(const ConceptData& conceptData) const {
-    return (startDay < conceptData.startDay);
+    if (startDay == conceptData.startDay) 
+      return conceptId < conceptData.conceptId;
+    else 
+      return (startDay < conceptData.startDay);
+  }
+  
+  bool operator ==(const ConceptData& conceptData) const {
+    // Currently not using end date:
+    return (startDay == conceptData.startDay  &&
+            conceptId == conceptData.conceptId);
   }
   
   int startDay;
@@ -73,7 +82,8 @@ struct PersonData {
 
 class PersonDataIterator {
 public:
-  PersonDataIterator(const List& _conceptData, const DataFrame& _observationPeriodReference);
+  PersonDataIterator(const List& _conceptData, const DataFrame& _observationPeriodReference,
+                     const DataFrame& _conceptAncestor);
   bool hasNext();
   PersonData next();
 private:
@@ -92,6 +102,8 @@ private:
 
   int observationPeriodCursor;
   int conceptDataCursor;
+  bool rollUpConcepts;
+  std::unordered_map<int, std::vector<int>> conceptToAncestors;
   void loadNextConceptDatas();
 };
 }

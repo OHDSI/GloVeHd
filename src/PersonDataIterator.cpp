@@ -30,31 +30,51 @@ using namespace Rcpp;
 namespace ohdsi {
 namespace glovehd {
 
-PersonDataIterator::PersonDataIterator(const List& _conceptData, const DataFrame& _observationPeriodReference) :
-conceptDataIterator(_conceptData, true), observationPeriodStartDates(0), observationPeriodEndDates(0), observationPeriodCursor(0), conceptDataCursor(0) {
+PersonDataIterator::PersonDataIterator(const List& _conceptData, const DataFrame& _observationPeriodReference,
+                                       const DataFrame& _conceptAncestor) :
+conceptDataIterator(_conceptData, true), 
+observationPeriodStartDates(0), 
+observationPeriodEndDates(0), 
+observationPeriodCursor(0), 
+conceptDataCursor(0),
+conceptToAncestors(0) {
   
   personIds = _observationPeriodReference["personId"];
   observationPeriodIds = _observationPeriodReference["observationPeriodId"];
   observationPeriodSeqIds = _observationPeriodReference["observationPeriodSeqId"];
   observationPeriodStartDates = _observationPeriodReference["observationPeriodStartDate"];
   observationPeriodEndDates = _observationPeriodReference["observationPeriodEndDate"];
+  
+  if (_conceptAncestor.size() == 0) {
+    rollUpConcepts = false;
+  } else {
+    rollUpConcepts = true;
+    NumericVector ancestorConceptId = _conceptAncestor["ancestorConceptId"];
+    NumericVector descendantConceptId = _conceptAncestor["descendantConceptId"];
+    for (int i = 0; i < ancestorConceptId.size(); i++) {
+      int id1 = (int)descendantConceptId[i];
+      int id2 = (int)ancestorConceptId[i];
+      if (conceptToAncestors.find(id1) == conceptToAncestors.end()) {
+        std::vector<int> ancestors(1);
+        ancestors.push_back(id2);
+        conceptToAncestors[id2] = ancestors;
+      } else {
+        conceptToAncestors[id1].push_back(id2);
+      }
+    }
+  }
   // Rcpp::Rcout << observationPeriodIds.length() << " length\n";
   loadNextConceptDatas();
 }
 
 
 void PersonDataIterator::loadNextConceptDatas() {
-  //  Environment base = Environment::namespace_env("base");
-  // Function writeLines = base["writeLines"];
-  // writeLines("Check 2\n");
-  
+  // Load the next batch of concept data from the Andromeda iterator
   List conceptDatas = conceptDataIterator.next();
   conceptDataStartDays = conceptDatas["startDay"];
   conceptDataEndDays = conceptDatas["endDay"];
   conceptDataConceptIds = conceptDatas["conceptId"];
   conceptDataObservationPeriodSeqIds = conceptDatas["observationPeriodSeqId"];
-  
-  // writeLines("Check 3\n");
 }
 
 bool PersonDataIterator::hasNext() {
@@ -69,7 +89,8 @@ PersonData PersonDataIterator::next() {
                         observationPeriodStartDates.at(observationPeriodCursor),
                         observationPeriodEndDates.at(observationPeriodCursor));
   observationPeriodCursor++;
-  while (conceptDataCursor < conceptDataObservationPeriodSeqIds.length() && conceptDataObservationPeriodSeqIds.at(conceptDataCursor) < observationPeriodSeqId) {
+  while (conceptDataCursor < conceptDataObservationPeriodSeqIds.length() && 
+         conceptDataObservationPeriodSeqIds.at(conceptDataCursor) < observationPeriodSeqId) {
     conceptDataCursor++;
     if (conceptDataCursor == conceptDataObservationPeriodSeqIds.length()){
       if (conceptDataIterator.hasNext()){
@@ -80,9 +101,22 @@ PersonData PersonDataIterator::next() {
       }
     }
   }
-  while (conceptDataCursor < conceptDataObservationPeriodSeqIds.length() && conceptDataObservationPeriodSeqIds.at(conceptDataCursor) == observationPeriodSeqId) {
-    ConceptData conceptData(conceptDataStartDays.at(conceptDataCursor), conceptDataEndDays.at(conceptDataCursor), conceptDataConceptIds.at(conceptDataCursor));
-    nextPerson.conceptDatas -> push_back(conceptData);
+  while (conceptDataCursor < conceptDataObservationPeriodSeqIds.length() && 
+         conceptDataObservationPeriodSeqIds.at(conceptDataCursor) == observationPeriodSeqId) {
+    double conceptId = conceptDataConceptIds.at(conceptDataCursor);
+    double startDay = conceptDataStartDays.at(conceptDataCursor);
+    double endDay = conceptDataEndDays.at(conceptDataCursor);
+    if (rollUpConcepts) {
+      std::unordered_map<int, std::vector<int>>::iterator iterator = conceptToAncestors.find((int)conceptId);
+      if (iterator != conceptToAncestors.end())
+        for (int ancestorConceptId: iterator->second) {
+          ConceptData conceptData(startDay, endDay, (double)ancestorConceptId);
+          nextPerson.conceptDatas->push_back(conceptData);
+        }
+    } else {
+      ConceptData conceptData(startDay, endDay, conceptId);
+      nextPerson.conceptDatas->push_back(conceptData);
+    }
     conceptDataCursor++;
     if (conceptDataCursor == conceptDataObservationPeriodSeqIds.length()){
       if (conceptDataIterator.hasNext()){
@@ -93,6 +127,15 @@ PersonData PersonDataIterator::next() {
       }
     }
   }
+  // Environment base = Environment::namespace_env("base");
+  // Function message = base["message"];
+  // message("- Concept datas: " + std::to_string(nextPerson.conceptDatas->size()));
+  std::sort(nextPerson.conceptDatas->begin(), nextPerson.conceptDatas->end());
+  auto newEnd = std::unique(nextPerson.conceptDatas->begin(), 
+                            nextPerson.conceptDatas->end());
+  nextPerson.conceptDatas->erase(newEnd,
+                                 nextPerson.conceptDatas->end());
+  // message("- Unique concept datas: " + std::to_string(nextPerson.conceptDatas->size()));
   return nextPerson;
 }
 }

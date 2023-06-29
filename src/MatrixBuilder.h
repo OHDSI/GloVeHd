@@ -34,7 +34,8 @@ public:
                 const std::vector<double>& _weights,
                 const int _windowSize,
                 const int _context,
-                const std::vector<double>& _conceptIds);
+                const std::vector<double>& _conceptIds,
+                const DataFrame& _conceptAncestor);
   S4 buildMatrix();
 private:
   void processPerson(PersonData& personData);

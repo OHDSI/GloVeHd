@@ -127,6 +127,19 @@ extractData <- function(connectionDetails,
     camelCaseToSnakeCase = TRUE
   )
   sql <- SqlRender::loadRenderTranslateSql(
+    sqlFilename = "ExtractConceptAncestor.sql",
+    packageName = "GloVeHd",
+    dbms = connectionDetails$dbms,
+    cdm_database_schema = cdmDatabaseSchema
+  )
+  DatabaseConnector::querySqlToAndromeda(
+    connection = connection,
+    sql = sql,
+    andromeda = andromeda,
+    andromedaTableName = "conceptAncestor",
+    snakeCaseToCamelCase = TRUE
+  )
+  sql <- SqlRender::loadRenderTranslateSql(
     sqlFilename = "ExtractConceptReference.sql",
     packageName = "GloVeHd",
     dbms = connectionDetails$dbms,

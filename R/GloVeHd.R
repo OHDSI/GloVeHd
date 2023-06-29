@@ -19,6 +19,7 @@
 
 #' @import dplyr
 #' @import Matrix
+#' @import Rcpp
 #' @importFrom rlang .data
 #' @useDynLib GloVeHd
 NULL
