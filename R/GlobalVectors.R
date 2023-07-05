@@ -32,7 +32,7 @@ computeGlobalVectors <- function(matrix, vectorSize = 300, maxCores = 1) {
   # matrix@x <- pmin(1, matrix@x)
   # matrix@x <- pmin(cutoff, matrix@x)
   glove = text2vec::GlobalVectors$new(rank = vectorSize, x_max = 1) #, learning_rate = 0.01) 
-  wv_main = glove$fit_transform(matrix, n_iter = 100, convergence_tol = 0.01, n_threads = maxCores)
+  wv_main = glove$fit_transform(matrix, n_iter = 100, convergence_tol = 0.001, n_threads = maxCores)
   wv_context = glove$components
   word_vectors = wv_main + t(wv_context)
   attr(word_vectors, "conceptReference") <- attr(matrix, "conceptReference")

@@ -79,6 +79,7 @@ void PersonDataIterator::loadNextConceptDatas() {
 
 bool PersonDataIterator::hasNext() {
   return (observationPeriodCursor < observationPeriodIds.length());
+  // return (observationPeriodCursor < 100);
 }
 
 PersonData PersonDataIterator::next() {
@@ -101,6 +102,8 @@ PersonData PersonDataIterator::next() {
       }
     }
   }
+  // Environment base = Environment::namespace_env("base");
+  // Function message = base["message"];
   while (conceptDataCursor < conceptDataObservationPeriodSeqIds.length() && 
          conceptDataObservationPeriodSeqIds.at(conceptDataCursor) == observationPeriodSeqId) {
     double conceptId = conceptDataConceptIds.at(conceptDataCursor);
@@ -108,11 +111,13 @@ PersonData PersonDataIterator::next() {
     double endDay = conceptDataEndDays.at(conceptDataCursor);
     if (rollUpConcepts) {
       std::unordered_map<int, std::vector<int>>::iterator iterator = conceptToAncestors.find((int)conceptId);
-      if (iterator != conceptToAncestors.end())
+      if (iterator != conceptToAncestors.end()) {
         for (int ancestorConceptId: iterator->second) {
           ConceptData conceptData(startDay, endDay, (double)ancestorConceptId);
           nextPerson.conceptDatas->push_back(conceptData);
         }
+        // message("- concept " + std::to_string(conceptId) + " ancestors: " + std::to_string(iterator->second.size()));
+      }
     } else {
       ConceptData conceptData(startDay, endDay, conceptId);
       nextPerson.conceptDatas->push_back(conceptData);
@@ -127,8 +132,7 @@ PersonData PersonDataIterator::next() {
       }
     }
   }
-  // Environment base = Environment::namespace_env("base");
-  // Function message = base["message"];
+  
   // message("- Concept datas: " + std::to_string(nextPerson.conceptDatas->size()));
   std::sort(nextPerson.conceptDatas->begin(), nextPerson.conceptDatas->end());
   auto newEnd = std::unique(nextPerson.conceptDatas->begin(), 

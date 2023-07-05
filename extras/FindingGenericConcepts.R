@@ -1,3 +1,5 @@
+# Code for identifying concepts in the hierarchy that are probably too generic
+# to be informative
 
 library(dplyr)
 counts <- data$conceptData %>%
@@ -64,3 +66,17 @@ x <- data$conceptReference %>%
   filter(conceptId %in% ancestorless) %>%
   collect()
 
+# Concepts with many ancestors -------------------------------------------------
+
+data$conceptAncestor %>%
+  group_by(descendantConceptId) %>%
+  summarise(count = n()) %>%
+  arrange(desc(count))
+
+
+andromeda$conceptAncestor %>%
+  group_by(descendantConceptId) %>%
+  summarise(count = n()) %>%
+  arrange(desc(count)) %>%
+  head(25) %>%
+  print(n = 25)

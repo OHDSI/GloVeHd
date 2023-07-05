@@ -127,10 +127,16 @@ extractData <- function(connectionDetails,
     camelCaseToSnakeCase = TRUE
   )
   sql <- SqlRender::loadRenderTranslateSql(
-    sqlFilename = "ExtractConceptAncestor.sql",
+    sqlFilename = "CreateConceptAncestor.sql",
     packageName = "GloVeHd",
     dbms = connectionDetails$dbms,
     cdm_database_schema = cdmDatabaseSchema
+  )
+  DatabaseConnector::executeSql(connection = connection, sql = sql)
+  sql <- SqlRender::loadRenderTranslateSql(
+    sqlFilename = "ExtractConceptAncestor.sql",
+    packageName = "GloVeHd",
+    dbms = connectionDetails$dbms
   )
   DatabaseConnector::querySqlToAndromeda(
     connection = connection,
@@ -152,7 +158,7 @@ extractData <- function(connectionDetails,
     andromedaTableName = "conceptReference",
     snakeCaseToCamelCase = TRUE
   )
-  sql <- "DROP TABLE #concept_ids;"
+  sql <- "DROP TABLE #concept_ids; DROP TABLE #concept_ancestor;"
   DatabaseConnector::renderTranslateExecuteSql(connection, sql, progressBar = FALSE, reportOverallTime = FALSE)
   
   message("Fetching observation period reference")

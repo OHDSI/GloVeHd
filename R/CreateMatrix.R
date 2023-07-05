@@ -42,13 +42,24 @@ createMatrix <- function(data, rollUpConcepts = TRUE) {
       collect()
     conceptAncestor <- data$conceptAncestor %>%
       collect() 
-    message("Removing generic concepts from ancestor tree")
-    genericConcepts <- getGenericConcepts(conceptReference)
+    message("Removing generic concepts and extreme descendants from ancestor tree")
+    genericConceptIds <- getGenericConceptIds(conceptReference)
+    extremeDescendantIds <- getExtremeDescendantConceptIds(conceptAncestor)
     conceptAncestor <- conceptAncestor %>%
-      filter(!.data$ancestorConceptId %in% genericConcepts$conceptId,
-             !.data$descendantConceptId %in% genericConcepts$conceptId)
+      filter(!.data$ancestorConceptId %in% genericConceptIds,
+             !.data$descendantConceptId %in% genericConceptIds) %>%
+      filter((!.data$descendantConceptId %in% extremeDescendantIds) | 
+               (.data$descendantConceptId == .data$ancestorConceptId))
+    remainingConceptIds <- unique(c(
+      conceptAncestor %>%
+        distinct(.data$ancestorConceptId) %>%
+        pull(),
+      conceptAncestor %>%
+        distinct(.data$descendantConceptId) %>%
+        pull()
+    ))
     conceptReference <- conceptReference %>%
-      filter(!.data$conceptId %in% genericConcepts$conceptId)
+      filter(.data$conceptId %in% remainingConceptIds)
   } else {
     conceptReference <- data$conceptReference %>%
       filter(.data$verbatim == 1) %>%
@@ -83,7 +94,7 @@ getConceptReference <- function(conceptIds, matrix) {
     return()
 }
 
-getGenericConcepts <- function(conceptReference) {
+getGenericConceptIds <- function(conceptReference) {
   pattern <- paste("finding$", 
                    "^Disorder of",
                    "^Finding of", 
@@ -115,5 +126,15 @@ getGenericConcepts <- function(conceptReference) {
                    sep = "|")
   conceptReference %>%
     filter(grepl(pattern, .data$conceptName)) %>%
+    pull(.data$conceptId) %>%
     return()
+}
+
+getExtremeDescendantConceptIds <- function(conceptAncestor) {
+  conceptIds <- conceptAncestor %>%
+    group_by(.data$descendantConceptId) %>%
+    summarise(count = n()) %>%
+    filter(.data$count > 100) %>%
+    pull(.data$descendantConceptId)
+  return(conceptIds)
 }

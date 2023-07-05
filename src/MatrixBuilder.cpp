@@ -58,8 +58,14 @@ conceptIdToIndex() {
   default:
     ::Rf_error("Illegal context");
   }
-  for (unsigned int i = 0; i < _conceptIds.size(); i++)
+  for (unsigned int i = 0; i < _conceptIds.size(); i++) {
     conceptIdToIndex[_conceptIds[i]] = i;
+    // if (conceptIdToIndex.size() % 1000 == 0) {
+    //   Environment base = Environment::namespace_env("base");
+    //   Function message = base["message"];
+    //   message("- Concepts in matrix: " + std::to_string(conceptIdToIndex.size()));
+    // }
+  }
 }
 
 void MatrixBuilder::processPerson(PersonData& personData) {
@@ -84,13 +90,13 @@ void MatrixBuilder::processPerson(PersonData& personData) {
     }
     for (int i = priorCursor; i <= postCursor; i++) {
       ConceptData contextConceptData = personData.conceptDatas->at(i);
-      if (contextConceptData.startDay != currentDay && 
-          contextConceptData.conceptId != conceptData->conceptId) {
-        double weight = weights.at(contextConceptData.startDay - currentDay + priorDays);
-        int index = conceptIdToIndex[conceptData->conceptId];
-        int contextIndex = conceptIdToIndex[contextConceptData.conceptId];
-        matrix.add(index, contextIndex, weight);
-      }
+      // if (contextConceptData.startDay != currentDay && 
+      //     contextConceptData.conceptId != conceptData->conceptId) {
+      double weight = weights.at(contextConceptData.startDay - currentDay + priorDays);
+      int index = conceptIdToIndex[conceptData->conceptId];
+      int contextIndex = conceptIdToIndex[contextConceptData.conceptId];
+      matrix.add(index, contextIndex, weight);
+      // }
     }
   }
 }

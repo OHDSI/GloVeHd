@@ -7,11 +7,9 @@ SELECT concept.concept_id,
 	END AS verbatim
 FROM @cdm_database_schema.concept
 INNER JOIN (
-	SELECT DISTINCT ancestor_concept_id AS concept_id
-	FROM @cdm_database_schema.concept_ancestor
-	INNER JOIN #concept_ids concept_ids
-		ON descendant_concept_id = concept_ids.concept_id
-	) all_concept_ids
-	ON concept.concept_id = all_concept_ids.concept_id
+	SELECT DISTINCT ancestor_concept_id 
+	FROM #concept_ancestor
+	) ancestor_concept_ids
+	ON concept.concept_id = ancestor_concept_id
 LEFT JOIN #concept_ids concept_ids
-	ON concept.concept_id = concept_ids.concept_id;
+	ON concept.concept_id = concept_ids.concept_id

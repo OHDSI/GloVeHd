@@ -63,8 +63,8 @@ data <- extractData(
   cdmDatabaseSchema = cdmDatabaseSchema,
   workDatabaseSchema = workDatabaseSchema,
   sampleTable = sampleTable,
-  sampleSize = 1e6,
-  chunkSize = 1e5
+  sampleSize = 1e5,
+  chunkSize = 1e4
 ) 
 Andromeda::saveAndromeda(data, file.path(folder, "Data.zip"))
 
@@ -83,5 +83,5 @@ conceptVectors <- readRDS(file.path(folder, "ConceptVectors.rds"))
 getSimilarConcepts(conceptId = 312327, conceptVectors = conceptVectors, n = 25)
 getSimilarConcepts(conceptId = 2005415, conceptVectors = conceptVectors, n = 25)
 getSimilarConcepts(conceptId = 1124300, conceptVectors = conceptVectors, n = 25)
-
+getSimilarConcepts(conceptId = 4198190, conceptVectors = conceptVectors, n = 25)
 
