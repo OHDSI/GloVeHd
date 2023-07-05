@@ -20,6 +20,9 @@
 #' @import dplyr
 #' @import Matrix
 #' @import Rcpp
+#' @import DatabaseConnector
 #' @importFrom rlang .data
+#' @importFrom stats quantile
+#' @importFrom utils setTxtProgressBar txtProgressBar
 #' @useDynLib GloVeHd
 NULL

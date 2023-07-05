@@ -9,7 +9,7 @@ createMatrix(data, rollUpConcepts = TRUE)
 \arguments{
 \item{data}{An Andromeda object as created using \code{\link[=extractData]{extractData()}}.}
 
-\item{rollUpConcept}{Should concepts be expanded to include all their ancestors
+\item{rollUpConcepts}{Should concepts be expanded to include all their ancestors
 as well?}
 }
 \value{

@@ -26,13 +26,20 @@
 #' 
 #' @export
 computeGlobalVectors <- function(matrix, vectorSize = 300, maxCores = 1) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertClass(matrix, "dgTMatrix", add = errorMessages)
+  checkmate::assertIntegerish(vectorSize, len = 1, lower = 2, add = errorMessages)
+  checkmate::assertIntegerish(maxCores, len = 1, lower = 1, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
+  startTime <- Sys.time()
+  
   # Normalize to avoid numerical issues:
   cutoff <- quantile(matrix@x, 0.95)
   matrix@x <- matrix@x / cutoff
   # matrix@x <- pmin(1, matrix@x)
   # matrix@x <- pmin(cutoff, matrix@x)
   glove = text2vec::GlobalVectors$new(rank = vectorSize, x_max = 1) #, learning_rate = 0.01) 
-  wv_main = glove$fit_transform(matrix, n_iter = 100, convergence_tol = 0.001, n_threads = maxCores)
+  wv_main = glove$fit_transform(matrix, n_iter = 1000, convergence_tol = 0.001, n_threads = maxCores)
   wv_context = glove$components
   word_vectors = wv_main + t(wv_context)
   attr(word_vectors, "conceptReference") <- attr(matrix, "conceptReference")
@@ -50,6 +57,12 @@ computeGlobalVectors <- function(matrix, vectorSize = 300, maxCores = 1) {
 #' 
 #' @export
 getSimilarConcepts <- function(conceptId, conceptVectors, n = 25) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertIntegerish(conceptId, len = 1, add = errorMessages)
+  checkmate::assertClass(conceptVectors, "matrix", add = errorMessages)
+  checkmate::assertIntegerish(n, len = 1, lower = 1, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
+  
   query <- conceptVectors[as.character(conceptId), , drop = FALSE]
   cos_sim <- text2vec::sim2(x = conceptVectors, y = query, method = "cosine", norm = "l2")
   similarity <- head(sort(cos_sim[,1], decreasing = TRUE), n)

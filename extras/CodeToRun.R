@@ -85,3 +85,6 @@ getSimilarConcepts(conceptId = 2005415, conceptVectors = conceptVectors, n = 25)
 getSimilarConcepts(conceptId = 1124300, conceptVectors = conceptVectors, n = 25)
 getSimilarConcepts(conceptId = 4198190, conceptVectors = conceptVectors, n = 25)
 
+conceptReference <- attr(conceptVectors, "conceptReference")
+sum(conceptReference$verbatim)
+nrow(conceptReference) ^ 2 * 8 / 1024^3

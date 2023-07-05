@@ -21,9 +21,9 @@
 
 #' Create concept co-occurrence matrix
 #'
-#' @param data          An Andromeda object as created using [extractData()].
-#' @param rollUpConcept Should concepts be expanded to include all their ancestors 
-#'                      as well?
+#' @param data           An Andromeda object as created using [extractData()].
+#' @param rollUpConcepts Should concepts be expanded to include all their ancestors 
+#'                       as well?
 #'
 #' @return 
 #' Returns a spare matrix containing the concept co-occurrences. For your 
@@ -31,8 +31,12 @@
 #' 
 #' @export
 createMatrix <- function(data, rollUpConcepts = TRUE) {
+  errorMessages <- checkmate::makeAssertCollection()
+  checkmate::assertClass(data, "Andromeda", add = errorMessages)
+  checkmate::assertLogical(rollUpConcepts, len = 1, add = errorMessages)
+  checkmate::reportAssertions(collection = errorMessages)
   startTime <- Sys.time()
-
+  
   observationPeriodReference <- data$observationPeriodReference %>%
     arrange(.data$observationPeriodSeqId) %>%
     collect()
@@ -74,13 +78,13 @@ createMatrix <- function(data, rollUpConcepts = TRUE) {
   windowSize <- 15
   weights <- 1 / (1 + abs(seq_len(windowSize) - (windowSize + 1) / 2))
   message("Constructing co-occurrence matrix")
-  matrix <- GloVeHd:::buildMatrix(conceptData = conceptData, 
-                                  observationPeriodReference = observationPeriodReference, 
-                                  weights = weights, 
-                                  windowSize = windowSize, 
-                                  context = context, 
-                                  conceptIds = conceptReference$conceptId,
-                                  conceptAncestor = conceptAncestor)
+  matrix <- buildMatrix(conceptData = conceptData, 
+                        observationPeriodReference = observationPeriodReference, 
+                        weights = weights, 
+                        windowSize = windowSize, 
+                        context = context, 
+                        conceptIds = conceptReference$conceptId,
+                        conceptAncestor = conceptAncestor)
   attr(matrix, "conceptReference") <- conceptReference
   
   delta <- Sys.time() - startTime

@@ -11,13 +11,13 @@ Depends:
 Imports:
   Rcpp,
   SqlRender (>= 1.12.0),
-  readr,
   rlang,
   dplyr,
-  ParallelLogger,
   text2vec,
   Matrix,
-  FeatureExtraction
+  FeatureExtraction,
+  Andromeda,
+  checkmate
 Remotes:
   ohdsi/FeatureExtaction
 License: Apache License

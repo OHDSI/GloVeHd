@@ -48,7 +48,6 @@ extractData <- function(connectionDetails,
   checkmate::assertCharacter(cdmDatabaseSchema, len = 1, add = errorMessages)
   checkmate::assertCharacter(workDatabaseSchema, len = 1, add = errorMessages)
   checkmate::assertCharacter(sampleTable, len = 1, add = errorMessages)
-  checkmate::assertCharacter(folder, len = 1, add = errorMessages)
   checkmate::assertInt(sampleSize, lower = 0, add = errorMessages)
   checkmate::assertInt(chunkSize, lower = 1, add = errorMessages)
   checkmate::reportAssertions(collection = errorMessages)
